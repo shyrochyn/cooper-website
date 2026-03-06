@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cooper — Trust The Pilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --amber: #C8DCFF;
+    --amber-dim: #8AAAD4;
+    --amber-glow: rgba(200, 220, 255, 0.12);
+    --bg: #06080F;
+    --bg2: #090C17;
+    --bg3: #0D1120;
+    --line: rgba(180, 210, 255, 0.12);
+    --text: #E4ECF7;
+    --text-dim: rgba(200, 220, 240, 0.42);
+    --green: #7DF9C2;
+    --accent: #FFFFFF;
+    --glow: rgba(180, 210, 255, 0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+  }
+
+  /* ── GRID BG ── */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(140, 170, 220, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(140, 170, 220, 0.08) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 20%, black 0%, transparent 70%);
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(8, 8, 8, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 4px;
+    color: #FFFFFF;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-logo span {
+    color: var(--text);
+    opacity: 0.5;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 3px;
+    margin-left: 12px;
+    vertical-align: middle;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--amber); }
+
+  .nav-cta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--amber);
+    padding: 10px 22px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+  .nav-cta:hover { background: #D8E8FF; transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 140px 24px 80px;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, rgba(140,180,255,0.04) 40%, transparent 70%);
+    width: 800px; height: 800px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--amber);
+    border: 1px solid var(--line);
+    padding: 8px 16px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 14vw, 180px);
+    line-height: 0.9;
+    letter-spacing: 8px;
+    color: var(--text);
+    animation: fadeUp 0.8s 0.1s ease forwards;
+    opacity: 0;
+    position: relative;
+  }
+
+  .hero-title em {
+    display: block;
+    color: #FFFFFF;
+    font-style: normal;
+    text-shadow: 0 0 60px rgba(200, 220, 255, 0.6), 0 0 120px rgba(160, 200, 255, 0.3);
+  }
+
+  .hero-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 32px;
+    max-width: 420px;
+    line-height: 1.8;
+    animation: fadeUp 0.8s 0.2s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 48px;
+    align-items: center;
+    animation: fadeUp 0.8s 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  .btn-primary {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--amber);
+    padding: 16px 36px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-primary:hover {
+    background: #D8E8FF;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(180, 210, 255, 0.35);
+  }
+
+  .btn-secondary {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 16px 24px;
+    border: 1px solid var(--line);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-secondary:hover { color: var(--amber); border-color: var(--amber); }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: var(--bg2);
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .ticker {
+    display: flex;
+    width: max-content;
+    animation: ticker 30s linear infinite;
+  }
+
+  .ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 48px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    border-right: 1px solid var(--line);
+    color: var(--text-dim);
+  }
+
+  .ticker-item .val { color: var(--green); }
+  .ticker-item .label { text-transform: uppercase; color: var(--text-dim); }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 40px;
+    background: var(--amber);
+    opacity: 0.5;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 6vw, 72px);
+    letter-spacing: 4px;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  /* ── FEATURES ── */
+  .features {
+    padding: 120px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .features-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: end;
+    margin-bottom: 80px;
+  }
+
+  .features-header p {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-dim);
+    max-width: 380px;
+    justify-self: end;
+    align-self: end;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .feature-card {
+    background: var(--bg);
+    padding: 40px 36px;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(200, 220, 255, 0.6), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feature-card:hover { background: var(--bg3); }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--amber);
+    opacity: 0.6;
+    margin-bottom: 24px;
+  }
+
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .feature-title {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: 0.3px;
+  }
+
+  .feature-desc {
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text-dim);
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how {
+    padding: 120px 48px;
+    background: var(--bg2);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .how-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .how-header {
+    text-align: center;
+    margin-bottom: 80px;
+  }
+
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    position: relative;
+  }
+
+  .how-steps::before {
+    content: '';
+    position: absolute;
+    top: 36px;
+    left: calc(16.66% + 24px);
+    right: calc(16.66% + 24px);
+    height: 1px;
+    background: linear-gradient(90deg, var(--amber) 0%, var(--amber) 50%, var(--amber) 100%);
+    opacity: 0.3;
+  }
+
+  .how-step {
+    padding: 0 48px;
+    text-align: center;
+    position: relative;
+  }
+
+  .how-step:first-child { padding-left: 0; }
+  .how-step:last-child { padding-right: 0; }
+
+  .step-num {
+    width: 72px;
+    height: 72px;
+    border: 1px solid var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 32px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--amber);
+    background: var(--bg2);
+    position: relative;
+    z-index: 1;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    box-shadow: 0 0 24px rgba(180, 210, 255, 0.15);
+  }
+
+  .how-step h3 {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .how-step p {
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text-dim);
+  }
+
+  /* ── STATS ── */
+  .stats {
+    padding: 100px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .stat-item {
+    background: var(--bg);
+    padding: 48px 36px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    letter-spacing: 4px;
+    color: var(--amber);
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(200, 220, 255, 0.3);
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* ── FAQ ── */
+  .faq {
+    padding: 120px 48px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .faq-header { margin-bottom: 60px; }
+
+  .faq-item {
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .faq-q {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    gap: 16px;
+    transition: color 0.2s;
+  }
+  .faq-q:hover { color: var(--amber); }
+
+  .faq-arrow {
+    color: var(--amber);
+    font-size: 20px;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .faq-item.open .faq-arrow { transform: rotate(45deg); }
+
+  .faq-a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text-dim);
+  }
+
+  .faq-item.open .faq-a {
+    max-height: 300px;
+    padding-bottom: 24px;
+  }
+
+  /* ── CTA ── */
+  .cta {
+    padding: 140px 48px;
+    text-align: center;
+    background: var(--bg2);
+    border-top: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-glow {
+    position: absolute;
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(200, 220, 255, 0.07) 0%, transparent 70%);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .cta h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 96px);
+    letter-spacing: 6px;
+    color: var(--text);
+    margin-bottom: 24px;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta h2 em {
+    color: #FFFFFF;
+    font-style: normal;
+    text-shadow: 0 0 60px rgba(200, 220, 255, 0.5);
+  }
+
+  .cta p {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta .btn-primary {
+    position: relative;
+    z-index: 1;
+    font-size: 13px;
+    padding: 18px 48px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 32px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .foot-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 4px;
+    color: #FFFFFF;
+  }
+
+  .foot-copy {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+  }
+
+  .foot-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+
+  .foot-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .foot-links a:hover { color: var(--amber); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .features { padding: 80px 24px; }
+    .features-header { grid-template-columns: 1fr; gap: 24px; }
+    .features-header p { justify-self: start; }
+    .features-grid { grid-template-columns: 1fr; }
+    .how { padding: 80px 24px; }
+    .how-steps { grid-template-columns: 1fr; gap: 48px; }
+    .how-steps::before { display: none; }
+    .how-step { padding: 0; }
+    .stats { padding: 60px 24px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .faq { padding: 80px 24px; }
+    .cta { padding: 100px 24px; }
+    footer { padding: 24px; flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">COOPER <span>v1.0</span></a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="https://t.me/CooperTradeBot" class="nav-cta">Launch Bot →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge">● Live · Copy Trading · Polymarket</div>
+  <h1 class="hero-title">
+    Trust<br><em>The Pilot</em>
+  </h1>
+  <p class="hero-sub">Automatically copy trades from top Polymarket whales. Set it. Forget it. Profit.</p>
+  <div class="hero-actions">
+    <a href="https://t.me/CooperTradeBot" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.012 9.477c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.875.744z"/></svg>
+      Launch on Telegram
+    </a>
+    <a href="#how" class="btn-secondary">How it works</a>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <div class="ticker-item"><span class="label">First Trade</span> <span class="val">3 Mar 2026</span></div>
+    <div class="ticker-item"><span class="label">Fee</span> <span class="val">1% per trade</span></div>
+    <div class="ticker-item"><span class="label">Latency</span> <span class="val">~192ms</span></div>
+    <div class="ticker-item"><span class="label">Auto-Redeem</span> <span class="val">✓ Active</span></div>
+    <div class="ticker-item"><span class="label">2FA Protected</span> <span class="val">✓ Active</span></div>
+    <div class="ticker-item"><span class="label">Network</span> <span class="val">Polygon</span></div>
+    <div class="ticker-item"><span class="label">First Redeem PNL</span> <span class="val">+104.1%</span></div>
+    <div class="ticker-item"><span class="label">Mode</span> <span class="val">Auto-Copy</span></div>
+
+    <!-- duplicate for infinite loop -->
+    <div class="ticker-item"><span class="label">First Trade</span> <span class="val">3 Mar 2026</span></div>
+    <div class="ticker-item"><span class="label">Fee</span> <span class="val">1% per trade</span></div>
+    <div class="ticker-item"><span class="label">Latency</span> <span class="val">~192ms</span></div>
+    <div class="ticker-item"><span class="label">Auto-Redeem</span> <span class="val">✓ Active</span></div>
+    <div class="ticker-item"><span class="label">2FA Protected</span> <span class="val">✓ Active</span></div>
+    <div class="ticker-item"><span class="label">Network</span> <span class="val">Polygon</span></div>
+    <div class="ticker-item"><span class="label">First Redeem PNL</span> <span class="val">+104.1%</span></div>
+    <div class="ticker-item"><span class="label">Mode</span> <span class="val">Auto-Copy</span></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="features-header reveal">
+    <div>
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Built for<br>Prediction Markets</h2>
+    </div>
+    <p>Cooper runs 24/7, monitoring whale wallets and executing trades in milliseconds — directly from your Telegram.</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feature-num">01</div>
+      <span class="feature-icon">⚡</span>
+      <div class="feature-title">Lightning Copy Engine</div>
+      <p class="feature-desc">Blockchain WebSocket detection with ~2.5s latency. 3s polling fallback. Every whale move, caught instantly.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-num">02</div>
+      <span class="feature-icon">🐋</span>
+      <div class="feature-title">Whale Leaderboard</div>
+      <p class="feature-desc">Browse top Polymarket traders ranked by PNL and volume. One tap to start copying any wallet.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-num">03</div>
+      <span class="feature-icon">🔁</span>
+      <div class="feature-title">Auto-Redeem</div>
+      <p class="feature-desc">Winning positions automatically redeemed every 5 minutes. USDC returned to your wallet without lifting a finger.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-num">04</div>
+      <span class="feature-icon">🛡️</span>
+      <div class="feature-title">2FA Security</div>
+      <p class="feature-desc">TOTP two-factor auth protects every withdrawal and key export. Compatible with Google Authenticator and Authy.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-num">05</div>
+      <span class="feature-icon">⚙️</span>
+      <div class="feature-title">Smart Presets</div>
+      <p class="feature-desc">Safe · Balanced · Aggressive. Instant configuration with position limits, price ranges, and copy percentages baked in.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-num">06</div>
+      <span class="feature-icon">📊</span>
+      <div class="feature-title">Live Portfolio</div>
+      <p class="feature-desc">Real-time PNL, open and closed positions, trade history with pagination. Full visibility from Telegram.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="how-header reveal">
+      <div class="section-label" style="justify-content:center;">How It Works</div>
+      <h2 class="section-title">Three Steps<br>to Autopilot</h2>
+    </div>
+    <div class="how-steps">
+      <div class="how-step reveal">
+        <div class="step-num">01</div>
+        <h3>Connect Your Wallet</h3>
+        <p>Start the bot. A secure wallet is created instantly and encrypted on our server. Deposit USDC and you're ready.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="step-num">02</div>
+        <h3>Pick a Whale</h3>
+        <p>Browse the leaderboard, select a top trader, and configure your copy percentage and limits with one of three presets.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="step-num">03</div>
+        <h3>Autopilot On</h3>
+        <p>Cooper monitors 24/7. Every trade the whale makes, you make. Every win auto-redeems. You just watch the numbers grow.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="stats-grid reveal">
+    <div class="stat-item">
+      <div class="stat-val">192<span style="font-size:28px">ms</span></div>
+      <div class="stat-label">Min Trade Latency</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">1<span style="font-size:28px">%</span></div>
+      <div class="stat-label">Fee Per Trade</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">9</div>
+      <div class="stat-label">Validation Checks</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val">24<span style="font-size:28px">h</span></div>
+      <div class="stat-label">Always On</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="faq-header reveal">
+    <div class="section-label">FAQ</div>
+    <h2 class="section-title">Common<br>Questions</h2>
+  </div>
+
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Do I control my own funds?
+      <span class="faq-arrow">+</span>
+    </button>
+    <div class="faq-a">Yes. You fully control your wallet and can export your private key at any time (2FA protected). Cooper executes trades on your behalf — your funds never leave your wallet to us.</div>
+  </div>
+
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      What are the fees?
+      <span class="faq-arrow">+</span>
+    </button>
+    <div class="faq-a">Cooper charges a 1% fee on each copied trade (buy and sell). There are no subscription fees or hidden charges. The Polymarket platform fee is separate and handled by the exchange.</div>
+  </div>
+
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Which traders can I copy?
+      <span class="faq-arrow">+</span>
+    </button>
+    <div class="faq-a">Cooper maintains a live leaderboard of top Polymarket traders ranked by PNL and volume. You can copy any wallet on the leaderboard, or add a custom wallet address manually.</div>
+  </div>
+
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      What happens when a position resolves?
+      <span class="faq-arrow">+</span>
+    </button>
+    <div class="faq-a">Cooper scans your positions every 5 minutes. Winning positions are automatically redeemed via the ConditionalTokens contract — USDC lands back in your wallet with no action required. Losing positions are closed in your portfolio automatically.</div>
+  </div>
+
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Is this available in my country?
+      <span class="faq-arrow">+</span>
+    </button>
+    <div class="faq-a">Cooper is available wherever Polymarket is accessible. Users from restricted regions (including the United States) cannot use Polymarket per their Terms of Service. Always check your local regulations before trading on prediction markets.</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="cta-glow"></div>
+  <h2>Ready to<br><em>Fly?</em></h2>
+  <p>Join Cooper · Start copying · Let the bot do the work</p>
+  <a href="https://t.me/CooperTradeBot" class="btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.012 9.477c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.875.744z"/></svg>
+    Launch Cooper on Telegram
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-logo">COOPER</div>
+  <div class="foot-copy">© 2026 cooper.trade · All rights reserved</div>
+  <ul class="foot-links">
+    <li><a href="https://t.me/CooperTradeBot">Telegram</a></li>
+    <li><a href="#">Twitter</a></li>
+    <li><a href="#">Terms</a></li>
+  </ul>
+</footer>
+
+<script>
+  // FAQ toggle
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
